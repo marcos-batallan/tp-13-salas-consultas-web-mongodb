@@ -1,0 +1,127 @@
+<section class="lista-reservas">
+    <h1><%= seccion %></h1>
+
+    <p>
+        <a class="boton" href="/reservas/nueva">Nueva reserva</a>
+    </p>
+
+    <form action="/reservas" method="GET" class="formulario-busqueda">
+        <div>
+            <label for="q">Buscar estudiante</label>
+            <input
+                type="text"
+                id="q"
+                name="q"
+                maxlength="60"
+                value="<%= criterios.q %>"
+                placeholder="Nombre del estudiante"
+            >
+        </div>
+
+        <div>
+            <label for="sala">Sala</label>
+            <input
+                type="text"
+                id="sala"
+                name="sala"
+                maxlength="80"
+                value="<%= criterios.sala %>"
+                placeholder="Nombre exacto de la sala"
+            >
+        </div>
+
+        <div>
+            <label for="orden">Ordenar por</label>
+            <select id="orden" name="orden">
+                <option
+                    value="estudiante"
+                    <%= criterios.orden === "estudiante" ? "selected" : "" %>
+                >
+                    Estudiante
+                </option>
+                <option
+                    value="personas-asc"
+                    <%= criterios.orden === "personas-asc" ? "selected" : "" %>
+                >
+                    Menor cantidad de personas
+                </option>
+                <option
+                    value="personas-desc"
+                    <%= criterios.orden === "personas-desc" ? "selected" : "" %>
+                >
+                    Mayor cantidad de personas
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <label for="limite">Resultados por página</label>
+            <select id="limite" name="limite">
+                <% for (let cantidad = 1; cantidad <= 20; cantidad++) { %>
+                    <option
+                        value="<%= cantidad %>"
+                        <%= criterios.limite === cantidad ? "selected" : "" %>
+                    >
+                        <%= cantidad %>
+                    </option>
+                <% } %>
+            </select>
+        </div>
+
+        <p>
+            <button type="submit">Buscar</button>
+            <a href="/reservas">Limpiar filtros</a>
+        </p>
+    </form>
+
+    <p>
+        Reservas encontradas: <strong><%= resultado.total %></strong>
+    </p>
+
+    <% if (reservas.length === 0 && resultado.total === 0) { %>
+        <p class="estado-vacio">
+            No se encontraron reservas con los criterios indicados.
+        </p>
+    <% } else if (reservas.length === 0) { %>
+        <p class="estado-vacio">
+            Esta página no contiene reservas. Podés volver a la
+            <a href="<%= enlacePagina(1) %>">primera página</a>.
+        </p>
+    <% } else { %>
+        <ul class="tarjetas-reservas">
+            <% reservas.forEach((reserva) => { %>
+                <li class="tarjeta-reserva">
+                    <h2><%= reserva.sala %></h2>
+                    <p><strong>Estudiante:</strong> <%= reserva.estudiante %></p>
+                    <p><strong>Fecha:</strong> <%= reserva.fecha %></p>
+                    <p><strong>Turno:</strong> <%= reserva.turno %></p>
+                    <p><strong>Personas:</strong> <%= reserva.personas %></p>
+                    <p><strong>Estado:</strong> <%= reserva.estado %></p>
+
+                    <p>
+                        <a href="/reservas/<%= reserva.id %>">Ver detalle</a>
+                    </p>
+                </li>
+            <% }) %>
+        </ul>
+
+        <nav class="paginacion" aria-label="Paginación de reservas">
+            <p>
+                Página <strong><%= resultado.pagina %></strong>
+                de <strong><%= resultado.paginas %></strong>
+            </p>
+
+            <% if (resultado.pagina > 1) { %>
+                <a href="<%= enlacePagina(resultado.pagina - 1) %>">
+                    Anterior
+                </a>
+            <% } %>
+
+            <% if (resultado.pagina < resultado.paginas) { %>
+                <a href="<%= enlacePagina(resultado.pagina + 1) %>">
+                    Siguiente
+                </a>
+            <% } %>
+        </nav>
+    <% } %>
+</section>
