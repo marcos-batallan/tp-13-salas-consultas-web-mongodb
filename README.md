@@ -293,15 +293,17 @@ El nuevo endpoint:
 GET /api/reservas/consulta
 ```
 
-utiliza los mismos criterios de búsqueda que el listado web.
+permite buscar, filtrar, ordenar y paginar reservas mediante los mismos criterios utilizados por el listado web.
 
-Admite los parámetros:
+Admite los siguientes parámetros:
 
-- `q`: búsqueda parcial por estudiante.
-- `sala`: filtro exacto por sala.
-- `orden`: criterio de ordenamiento.
-- `pagina`: número de página.
-- `limite`: cantidad de resultados por página.
+| Parámetro | Descripción | Valor predeterminado |
+|---|---|---|
+| `q` | Búsqueda parcial por nombre del estudiante | Vacío |
+| `sala` | Filtro exacto por sala | Vacío |
+| `orden` | Criterio de ordenamiento | `estudiante` |
+| `pagina` | Número de página | `1` |
+| `limite` | Cantidad de resultados por página | `2` |
 
 Ejemplo:
 
@@ -309,52 +311,54 @@ Ejemplo:
 http://localhost:3000/api/reservas/consulta?q=Ana&sala=Sala%20Norte&orden=personas-asc&limite=2&pagina=1
 ```
 
-Respuesta exitosa:
+La búsqueda textual no distingue entre mayúsculas y minúsculas y trata los caracteres ingresados de forma literal, sin interpretarlos como expresiones regulares.
+
+La respuesta exitosa utiliza el siguiente formato:
 
 ```json
 {
-  "datos": [
-    {
-      "id": "ID_REAL",
-      "estudiante": "Ana Alba",
-      "email": "ana.alba@example.com",
-      "sala": "Sala Norte",
-      "fecha": "2026-11-18",
-      "turno": "Mañana",
-      "personas": 1,
-      "estado": "pendiente"
-    }
-  ],
+  "datos": [],
   "pagina": 1,
   "limite": 2,
-  "total": 1,
-  "paginas": 1
+  "total": 0,
+  "paginas": 0
 }
 ```
 
-Los valores del ejemplo son ilustrativos. Los resultados reales dependen de los documentos almacenados en MongoDB.
-
-La respuesta incluye:
+Los campos de la respuesta representan:
 
 - `datos`: reservas correspondientes a la página solicitada.
-- `pagina`: página actual.
+- `pagina`: número de página consultada.
 - `limite`: cantidad máxima de resultados por página.
 - `total`: cantidad total de reservas que cumplen los criterios.
 - `paginas`: cantidad total de páginas disponibles.
 
-Cuando la página solicitada no contiene resultados, `datos` es un arreglo vacío. Si no existen coincidencias, `total` y `paginas` son cero.
+Cuando no existen coincidencias, `datos` es un arreglo vacío y los valores de `total` y `paginas` son cero.
+
+Si se solicita una página válida que no contiene registros, se devuelve igualmente un arreglo vacío, conservando los metadatos de paginación.
+
+La lectura y validación de criterios se centraliza en `criterios-reservas.js`. El controlador utiliza el método `buscar()` del servicio `reservas-mongo.js`, compartido con la interfaz web.
 
 ### Consulta anterior de la API
 
-Se conserva:
+Se conserva el endpoint:
 
 ```http
 GET /api/reservas
 ```
 
-Este endpoint mantiene la consulta anterior, con sus criterios de sala, ordenamiento y paginación, sin incorporar el nuevo parámetro de búsqueda textual `q`.
+Esta consulta permite listar reservas utilizando los siguientes parámetros:
 
-De esta manera, se mantiene la compatibilidad con las funcionalidades existentes.
+- `sala`: filtro por sala.
+- `orden`: criterio de ordenamiento.
+- `pagina`: número de página.
+- `limite`: cantidad de resultados por página.
+
+No incorpora el parámetro de búsqueda textual `q`, que pertenece al nuevo endpoint `/api/reservas/consulta`.
+
+La consulta anterior mantiene su implementación y validaciones, utilizando el método `consultar()` del servicio MongoDB.
+
+De esta manera, se conservan las funcionalidades existentes y se incorpora una nueva consulta sin reemplazar el endpoint anterior.
 
 ### Validación de criterios
 
